@@ -191,3 +191,188 @@ user.lastName ?? user.firstName
 user.lastName != null ? user.lastName : user.firstName
 ```
 
+所有支持的操作符如下：
+- 数学运算符 + - / * %
+- 字符串拼接 +
+- 一元运算符 + - ! ~
+- 三元运算符 ? :
+- 逻辑运算 && ||
+- 二进制运算 & | ^
+- 位运算符 >> >>> <<
+- 比较运算符 == > < >= <=
+- instanceof
+- Grouping ()
+- 文字 - character, String, numeric, null
+- 类型转换 cast
+- 方法调用 methods call
+- 字段使用 field access
+- 数组使用 [] Arrary access
+
+**3.4 显示图片**
+
+----BindingAdapter注解
+
+- 创建显示图片的类
+```
+public class ImageUtil {
+
+    /**
+     * 使用Glide显示图片
+     * @param imageView
+     * @param url
+     *
+     * 用bind声明一个image自定义属性
+     * @BindingAdapter({"bind:image"})
+     *
+     * @BindingAdapter({"bind:image"}) 改成 @BindingAdapter({"image"}) 不会有警告
+     */
+    @BindingAdapter({"image"})
+    public static void imageLoader(ImageView imageView, String url) {
+        Glide.with(imageView.getContext())
+                .load(url)
+                .into(imageView);
+    }
+}
+```
+
+- 布局文件
+```
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_main"
+    tools:context=".MainActivity" >
+
+    <data>
+
+        <variable
+            name="imageUrl"
+            type="String"/>
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            app:image = "@{imageUrl}"/>
+
+    </LinearLayout>
+
+</layout>
+```
+
+- 在Activity绑定数据
+```
+binding.setImageUrl("http://img.zcool.cn/community/01b72057a7e0790000018c1bf4fce0.png");
+```
+
+**3.5 点击事件**
+
+- 定义点击事件
+```
+public class Presenter {
+
+    // 参数View必须有，必须是public，参数View不能改成对应的控件，只能是View，否则编译不通过
+    public void onClick(View view) {
+        Toast.makeText(view.getContext(), "点击事件", Toast.LENGTH_LONG).show();
+    }
+}
+```
+
+- 布局文件中添加点击事件
+```
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_main"
+    tools:context=".MainActivity" >
+
+    <data>
+
+        <variable
+            name="presenter"
+            type="com.mtq.zqydatabindingdemo.Presenter"/>
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAllCaps="false"
+            android:onClick="@{presenter.onClick}"
+            android:text="Button" />
+
+    </LinearLayout>
+
+</layout>
+```
+
+- 在Activity中调用
+```
+binding.setPresenter(new Presenter());
+```
+
+**3.6 调用Activity中的变量**
+
+- 在ctivity中定义变量
+```
+// 注意：该变量必须是public static
+public static String text = "按钮";
+```
+
+- 在布局中调用
+```
+<variable
+    name="mainActivity"
+    type="com.mtq.zqydatabindingdemo.MainActivity"/>
+    
+<Button
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textAllCaps="false"
+    android:text="@{mainActivity.text}" />
+```
+
+**3.7 数据改变时更新UI**
+
+```
+user = new User("zhao", "qingyue", true);
+binding.setUser(user);
+delay();
+
+
+/**
+ * 两秒后改变firstName
+ */
+private void delay() {
+
+    new Handler().postDelayed(new Runnable() {
+
+        @Override
+        public void run() {
+            user.setFirstName("Zhou");
+            binding.setUser(user);
+        }
+    }, 2000);
+}
+```
+
+**3.8 BaseObservable**
+
+----官方提供更简单的更新UI方式
+
+使User继承BaseObservable
